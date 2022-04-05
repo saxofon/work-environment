@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script helper for ssh tmux sessions
+# Author : Per Hallsmark <per@hallsmark.se>
+
+# ssh_tmux : starts a new ssh and attaches to tmux session
+#            or create it if not existing.
+#       $1 : server to connect to
+#       $2 : session name, used for tmux and window title
+#       $3 : default directory
+ssh_tmux() {
+	if ssh -X $1 -t tmux attach-session -t $2 -c $3 ; then
+		:
+	else
+		ssh $1 -t tmux new-session -d -s $2 -c $3
+
+		ct=$(ssh $1 -t tmux show-option -t $2 set-titles-string | cut -d\" -f2)
+		if [[ "$ct" != "$2" ]]; then
+			ssh $1 -t tmux set-option -t $2 set-titles on
+			ssh $1 -t tmux set-option -t $2 set-titles-string "$2"
+		fi
+		ssh $1 -t tmux split-window -h -t $2 -c $3
+		ssh $1 -t tmux split-window -v -t $2 -c $3
+		ssh -X $1 -t tmux attach-session -t $2 -c $3
+	fi
+}

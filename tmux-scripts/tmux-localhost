@@ -1,0 +1,17 @@
+#!/bin/bash
+WD=/home/per
+SESSION=localhost
+
+if tmux attach-session -t $SESSION -c $WD ; then
+	:
+else
+	tmux new-session -d -s $SESSION -c $WD
+	ct=$(tmux show-option -t $SESSION set-titles-string | cut -d\" -f2)
+	if [[ "$ct" != "$SESSION" ]]; then
+		tmux set-option -t $SESSION set-titles on
+		tmux set-option -t $SESSION set-titles-string "$SESSION"
+	fi
+	tmux split-window -h -t $SESSION -c $WD
+	tmux split-window -v -t $SESSION -c $WD
+	tmux attach-session -t $SESSION -c $WD
+fi
